@@ -185,7 +185,7 @@ string sub(string& a, string b){ //高精度减法
                     res = a[0] - b[0] - carry;
                     str = to_string(res) + str;
                 } else if (carry == 0) {
-                    str = '.' + str;
+                    str = "0." + str;
                 } else {
                     str = "-1." + str;
                 }
