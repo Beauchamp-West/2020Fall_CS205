@@ -5,6 +5,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <chrono>
 using namespace std;
 
 string add(string& a, string& b){ //高精度加法
@@ -233,8 +234,12 @@ int main(){
         cout << "You should input two vectors with the same length!" << endl;
         main();
     }
+    auto start = chrono::system_clock::now();
 
     string out = compute(vector1,vector2);
     cout << out << endl;
 
+    auto end = chrono::system_clock::now();
+    auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
+    cout << duration.count() <<"ms" << endl;
 }
