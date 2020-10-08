@@ -6,7 +6,41 @@
 #include <string>
 #include <vector>
 #include <chrono>
+#include <random>
+#include <fstream>
 using namespace std;
+
+float generateRand(){ //生成随机数组
+    float a1=0.0;
+    int i=0;
+    random_device r1;
+    a1 = r1() / float(RAND_MAX / 100);
+    return a1;
+}
+
+void save(const string& filename){ //存储生成的数组
+    ofstream data(filename);
+    const int length = 200000000;
+    int i=0;
+    while (i<length){
+        data << generateRand() << "\n";
+        i++;
+    }
+    data.close();
+}
+
+vector<float> read(const string& filename){ //将生成的数组读入存入vector
+    ifstream data(filename);
+    if(!data) std::cout<<"File open error!\n";
+
+    const int length = 200000000;
+    vector<float> v;
+    for(float i;data >> i;){
+        v.push_back(i);
+    }
+    data.close();
+    return v;
+}
 
 string add(string& a, string& b){ //高精度加法
     string sub(string& a, string b);
@@ -202,7 +236,7 @@ string mul(string& a, string& b){
     }
 }
 
-string compute(const vector<float>& a,const vector<float>& b){
+string compute(const vector<float> a,const vector<float> b){
     string res = "0";
     for (int i = 0; i < a.size(); ++i) {
         string val1 = to_string(a[i]);
@@ -215,25 +249,34 @@ string compute(const vector<float>& a,const vector<float>& b){
 }
 
 int main(){
-    cout << "Please input two vectors with the same length" << endl;
-    float in;
-    vector<float> vector1,vector2;
+//    cout << "random vectors are being read" << endl;
+    auto start1 = chrono::system_clock::now();
 
-    while (true){
-        cin >> in;
-        vector1.push_back(in);
-        if (cin.get() == '\n') break;
-    }
-    while (true){
-        cin >> in;
-        vector2.push_back(in);
-        if (cin.get() == '\n') break;
-    }
+    vector<float> vector1=read("data1.txt"),vector2=read("data2.txt");
 
-    if (vector1.size() != vector2.size()){
-        cout << "You should input two vectors with the same length!" << endl;
-        main();
-    }
+    auto end1 = chrono::system_clock::now();
+    auto duration1 = chrono::duration_cast<chrono::milliseconds>(end1 - start1);
+    cout << "The reading costs " << duration1.count() <<"ms" << endl;
+
+//    for(float a1 : vector1) cout << a1 << " ";
+//    cout << "\n";
+//    for(float a2 : vector1) cout << a2 << " ";
+
+//    while (true){
+//        cin >> in;
+//        vector1.push_back(in);
+//        if (cin.get() == '\n') break;
+//    }
+//    while (true){
+//        cin >> in;
+//        vector2.push_back(in);
+//        if (cin.get() == '\n') break;
+//    }
+//
+//    if (vector1.size() != vector2.size()){
+//        cout << "You should input two vectors with the same length!" << endl;
+//        main();
+//    }
     auto start = chrono::system_clock::now();
 
     string out = compute(vector1,vector2);
@@ -241,5 +284,5 @@ int main(){
 
     auto end = chrono::system_clock::now();
     auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
-    cout << duration.count() <<"ms" << endl;
+    cout << "The computation costs " << duration.count() <<"ms" << endl;
 }
