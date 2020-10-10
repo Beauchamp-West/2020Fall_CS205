@@ -4,42 +4,42 @@
 
 #include <iostream>
 #include <string>
-#include <vector>
 #include <chrono>
-#include <random>
-#include <fstream>
+#include <cstdio>
+#include </usr/local/Cellar/openblas/0.3.10_1/include/cblas.h>
 using namespace std;
 
-float generateRand(){ //生成随机数组
-    float a1=0.0;
-    int i=0;
-    random_device r1;
-    a1 = r1() / float(RAND_MAX / 100);
-    return a1;
-}
+float* read(const char* fileName){ //将生成的数组读入存入vector
+//    union trans
+//    {
+//        float a;
+//        unsigned int b;
+//    };
 
-void save(const string& filename){ //存储生成的数组
-    ofstream data(filename);
-    const int length = 200000000;
-    int i=0;
-    while (i<length){
-        data << generateRand() << "\n";
-        i++;
-    }
-    data.close();
-}
+    FILE* fp;
+    float *vec;
+    vec = new float[200000000];
+    fp = fopen(fileName, "rb"); // 以二进制读取的形式打开
+    fread(vec,sizeof(float), 200000000, fp); // 二进制读
+    fclose(fp);
 
-vector<float> read(const string& filename){ //将生成的数组读入存入vector
-    ifstream data(filename);
-    if(!data) std::cout<<"File open error!\n";
+//    const int LENGTH = 200000;
+//    unsigned int vec[LENGTH];
+//    freopen(filename,"r",stdin);
+//    for (unsigned int& i : vec){
+//        trans test;
+//        test.b = i;
+//        scanf("%f",&test.a);
+//        printf("%f\n",vec);
+//    }
 
-    const int length = 200000000;
-    vector<float> v;
-    for(float i;data >> i;){
-        v.push_back(i);
-    }
-    data.close();
-    return v;
+//    vector<float> v;
+//    ios::sync_with_stdio(false);
+//    for(float i;data >> i;){
+//        v.push_back(i);
+//    }
+//    data.close();
+    return vec;
 }
 
 string add(string& a, string& b){ //高精度加法
@@ -236,13 +236,16 @@ string mul(string& a, string& b){
     }
 }
 
-string compute(const vector<float> a,const vector<float> b){
+string compute(float* a,float* b){
+
     string res = "0";
-    for (int i = 0; i < a.size(); ++i) {
-        string val1 = to_string(a[i]);
-        string val2 = to_string(b[i]);
-        string tmp = mul(val1,val2);
-        res = add(res,tmp);
+    for (int i = 0; i < 200000000; ++i) {
+        double result = double(a[i])*b[i];
+        string val = to_string(result);
+//        string val1 = to_string(a[i]);
+//        string val2 = to_string(b[i]);
+//        string tmp = mul(val1,val2);
+        res = add(res,val);
 //        cout << res << endl;
     }
     return res;
@@ -252,35 +255,20 @@ int main(){
 //    cout << "random vectors are being read" << endl;
     auto start1 = chrono::system_clock::now();
 
-    vector<float> vector1=read("data1.txt"),vector2=read("data2.txt");
+    const char* name1 = "data1";
+    const char* name2 = "data2";
+    float *v1 = read(name1), *v2 = read(name2);
+//    vector<float> vector1=read(name1),vector2=read(name2);
 
     auto end1 = chrono::system_clock::now();
     auto duration1 = chrono::duration_cast<chrono::milliseconds>(end1 - start1);
     cout << "The reading costs " << duration1.count() <<"ms" << endl;
 
-//    for(float a1 : vector1) cout << a1 << " ";
-//    cout << "\n";
-//    for(float a2 : vector1) cout << a2 << " ";
-
-//    while (true){
-//        cin >> in;
-//        vector1.push_back(in);
-//        if (cin.get() == '\n') break;
-//    }
-//    while (true){
-//        cin >> in;
-//        vector2.push_back(in);
-//        if (cin.get() == '\n') break;
-//    }
-//
-//    if (vector1.size() != vector2.size()){
-//        cout << "You should input two vectors with the same length!" << endl;
-//        main();
-//    }
     auto start = chrono::system_clock::now();
-
-    string out = compute(vector1,vector2);
-    cout << out << endl;
+    float res = cblas_sdot(200000000,v1,1,v2,1); // 与openBLAS中cblas_sdot()函数比较
+    cout << res << endl;
+//    string out = compute(v1,v2);
+//    cout << out << endl;
 
     auto end = chrono::system_clock::now();
     auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
