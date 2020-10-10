@@ -1,4 +1,4 @@
 # 2020Fall_CS205
-assignment 1: multiply  
-assignment 2: calculator  
-assignment 3: dot product
+* The folder **/Assignments** contains the main cpp file and the modified cmakelists
+
+* The folder **/Lab** contains the cpp file to save the 200m-elements vector as a binary file.
