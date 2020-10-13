@@ -6,6 +6,7 @@
 #include <string>
 #include <chrono>
 #include <cstdio>
+#include <thread>
 #include </usr/local/Cellar/openblas/0.3.10_1/include/cblas.h>
 using namespace std;
 
@@ -23,232 +24,26 @@ float* read(const char* fileName){ //将生成的数组读入存入vector
     fread(vec,sizeof(float), 200000000, fp); // 二进制读
     fclose(fp);
 
-//    const int LENGTH = 200000;
-//    unsigned int vec[LENGTH];
-//    freopen(filename,"r",stdin);
-//    for (unsigned int& i : vec){
-//        trans test;
-//        test.b = i;
-//        scanf("%f",&test.a);
-//        printf("%f\n",vec);
-//    }
-
-//    vector<float> v;
-//    ios::sync_with_stdio(false);
-//    for(float i;data >> i;){
-//        v.push_back(i);
-//    }
-//    data.close();
     return vec;
 }
 
-string add(string& a, string& b){ //高精度加法
-    string sub(string& a, string b);
-    string str;
-    if (a[0] == '-'){
-        if (b[0] == '-'){
-            str = '-'+ add(a.erase(0,1),b.erase(0,1));
-            return str;
-        } else {
-            return sub(b,a.erase(0,1));
-        }
-    } else {
-        if (b[0] == '-'){
-            return sub(a,b.erase(0,1));
-        } else {
-            string :: size_type a_int = a.find('.'),b_int = b.find('.'); //比较整数、小数部分，补0
-            string :: size_type a_dec,b_dec;
-            if (a_int == string::npos){
-                a_int = a.size();
-                a_dec = 0;
-            } else {
-                a_dec = a.size()-a_int-1;
-            }
-            if (b_int == string::npos){
-                b_int = b.size();
-                b_dec = 0;
-            } else {
-                b_dec = b.size()-b_int-1;
-            }
-            if (a_int > b_int){
-                for (int i = 0; i < a_int-b_int; ++i)
-                    b = '0' + b;
-            } else if (a_int < b_int){
-                for (int i = 0; i < b_int-a_int; ++i)
-                    a = '0' + a;
-            }
-            if (a_dec > b_dec){
-                if (b_dec == 0) b += '.';
-                for (int i = 0; i < a_dec-b_dec; ++i)
-                    b += '0';
-            } else if (a_dec < b_dec){
-                if (a_dec == 0) a += '.';
-                for (int i = 0; i < b_dec-a_dec; ++i)
-                    a += '0';
-            }
+float *v1,*v2; // 向量定义为全局变量，防止栈内存不足，以及方便多个函数中引用
 
-            int carry = 0,res;
-            for (int i = a.size()-1; i > -1; --i) {
-                if (a[i] == '.'){
-                    str = '.' + str;
-                } else {
-                    char c = a[i], d = b[i];
-                    res = (c - '0' + d - '0' + carry) % 10;
-                    carry = (c - '0' + d - '0' + carry) / 10;
-                    str = char(res + '0') + str;
-                }
-            }
-            if (carry != 0) str = char(carry + '0') + str;
-
-            return str;
-        }
-    }
-}
-string sub(string& a, string b){ //高精度减法
-    string str;
-    if (b[0] == '-'){
-        return add(a,b.erase(0,1));
-    } else {
-        if (a[0] == '-'){
-            str = '-' + add(a.erase(0,1),b);
-            return str;
-        } else {
-            if (stod(a) < stod(b)) return '-' + sub(b,a);
-            else {
-                string::size_type a_int = a.find('.'), b_int = b.find('.'); //比较整数、小数部分，补0
-                string::size_type a_dec, b_dec;
-                if (a_int == string::npos) {
-                    a_int = a.size();
-                    a_dec = 0;
-                } else {
-                    a_dec = a.size() - a_int - 1;
-                }
-                if (b_int == string::npos) {
-                    b_int = b.size();
-                    b_dec = 0;
-                } else {
-                    b_dec = b.size() - b_int - 1;
-                }
-                if (a_int > b_int) {
-                    for (int i = 0; i < a_int - b_int; ++i)
-                        b = '0' + b;
-                } else if (a_int < b_int) {
-                    for (int i = 0; i < b_int - a_int; ++i)
-                        a = '0' + a;
-                }
-                if (a_dec > b_dec) {
-                    if (b_dec == 0) b += '.';
-                    for (int i = 0; i < a_dec - b_dec; ++i)
-                        b += '0';
-                } else if (a_dec < b_dec) {
-                    if (a_dec == 0) a += '.';
-                    for (int i = 0; i < b_dec - a_dec; ++i)
-                        a += '0';
-                }
-
-                int carry = 0, res;
-                for (int i = a.size() - 1; i > 0; --i) {
-                    char c = a[i], d = b[i];
-                    if (a[i] == '.') {
-                        str = '.' + str;
-                    } else {
-                        res = c - d - carry;
-                        if (res < 0) {
-                            res += 10;
-                            carry = 1;
-                        } else carry = 0;
-                        str = char(res + '0') + str;
-                    }
-                }
-                if (a[0] != '.') {
-                    res = a[0] - b[0] - carry;
-                    if (res != 0) str = to_string(res) + str;
-                } else if (carry == 0) {
-                    str = "0." + str;
-                } else {
-                    str = "-1." + str;
-                }
-                return str;
-            }
-        }
-    }
-}
-
-string mul(string& a, string& b){
-    if (a[0] == '-'){
-        if (b[0] == '-'){
-            return mul(a.erase(0,1),b.erase(0,1));
-        } else {
-            return '-' + mul(a.erase(0,1),b);
-        }
-    } else {
-        if (b[0] == '-'){
-            return '-' + mul(a,b.erase(0,1));
-        } else {
-            string::size_type a_int = a.find('.'), b_int = b.find('.');
-            string::size_type a_dec = 0, b_dec = 0;
-            if (a_int != string::npos){
-                while (a[a.size()-1]=='0') a.pop_back();
-                a = a.erase(a_int,1);
-                a_dec = a.size()-a_int;
-            }
-            if (b_int != string::npos){
-                while (b[b.size()-1]=='0') b.pop_back();
-                b = b.erase(b_int,1);
-                b_dec = b.size()-b_int;
-            }
-            string rows[b.size()];
-            for (int i = b.size()-1; i >= 0; --i) {
-                string row;
-                int over = 0;
-                for (int j = a.size()-1; j >= 0; --j) {
-                    string tmp = to_string((a[j]-'0') * (b[i]-'0') + over);
-                    if (tmp.size() > 1){
-                        row = tmp[1] + row;
-                        over = tmp[0]-'0';
-                    } else {
-                        row = tmp + row;
-                        over = 0;
-                    }
-                }
-                if (over != 0) row = char(over + '0') + row;
-                int k = i;
-                while ((b.size()-k-1) > 0){
-                    row += '0';
-                    k++;
-                }
-                rows[i] = row;
-            }
-            string result = "0";
-            for (int i = 0; i < b.size(); ++i) {
-                result = add(result,rows[i]);
-            }
-            string::size_type num = a_dec + b_dec;
-//            cout << "num " << num << endl;
-            if (num != 0){
-                result = result.insert(result.size()-num,".");
-                while (result[result.size()-1] == '0' || result[result.size()-1] == '.') result.pop_back(); //去掉多余的0
-            }
-            while (result[0] == '0') result.erase(0,1);
-            if (result[0] == '.') result = '0'+result;
-            return result;
-        }
-    }
-}
-
-string compute(float* a,float* b){
-
-    string res = "0";
-    for (int i = 0; i < 200000000; ++i) {
-        double result = double(a[i])*b[i];
-        string val = to_string(result);
-//        string val1 = to_string(a[i]);
-//        string val2 = to_string(b[i]);
-//        string tmp = mul(val1,val2);
-        res = add(res,val);
+void compute(const int &a,const int &b,double &result){
+    double init;
+    for (int i = a; i < b; ++i) {
+        init = double(v1[i])*v2[i];
+        result += init;
 //        cout << res << endl;
     }
-    return res;
+}
+void fcompute(const int &a,const int &b,float &result){
+    float init;
+    for (int i = a; i < b; ++i) {
+        init = v1[i]*v2[i];
+        result += init;
+//        cout << res << endl;
+    }
 }
 
 int main(){
@@ -256,8 +51,8 @@ int main(){
     auto start1 = chrono::system_clock::now();
 
     const char* name1 = "data1";
-    const char* name2 = "data2";
-    float *v1 = read(name1), *v2 = read(name2);
+    const char* name2 = "data3";
+    v1 = read(name1), v2 = read(name2);
 //    vector<float> vector1=read(name1),vector2=read(name2);
 
     auto end1 = chrono::system_clock::now();
@@ -265,12 +60,59 @@ int main(){
     cout << "The reading costs " << duration1.count() <<"ms" << endl;
 
     auto start = chrono::system_clock::now();
+
     float res = cblas_sdot(200000000,v1,1,v2,1); // 与openBLAS中cblas_sdot()函数比较
+    cout << fixed;
     cout << res << endl;
-//    string out = compute(v1,v2);
-//    cout << out << endl;
 
     auto end = chrono::system_clock::now();
     auto duration = chrono::duration_cast<chrono::milliseconds>(end - start);
-    cout << "The computation costs " << duration.count() <<"ms" << endl;
+    cout << "openBLAS costs " << duration.count() <<"ms" << endl;
+
+    auto start2 = chrono::system_clock::now();
+//    double res1=0,res2=0,res3=0,res4=0,res5=0,res6=0,res7=0,res8=0;
+    double res0=0;
+    float res9=0;
+//    thread t1(compute,0,50000000,ref(res1)); // 4线程
+//    thread t2(compute,50000000,100000000,ref(res2));
+//    thread t3(compute,100000000,150000000,ref(res3));
+//    thread t4(compute,150000000,200000000,ref(res4));
+//    thread t1(compute,0,25000000,ref(res1)); // 8线程
+//    thread t2(compute,25000000,50000000,ref(res2));
+//    thread t3(compute,50000000,75000000,ref(res3));
+//    thread t4(compute,75000000,100000000,ref(res4));
+//    thread t5(compute,100000000,125000000,ref(res5));
+//    thread t6(compute,125000000,150000000,ref(res6));
+//    thread t7(compute,150000000,175000000,ref(res7));
+//    thread t8(compute,175000000,200000000,ref(res8));
+//    t1.join();
+//    t2.join();
+//    t3.join();
+//    t4.join();
+//    t5.join();
+//    t6.join();
+//    t7.join();
+//    t8.join();
+//    res0 = res1+res2+res3+res4;
+//    res0 += res5+res6+res7+res8;
+    compute(0,200000000,res0);
+
+    cout << res0 << endl;
+
+    auto end2 = chrono::system_clock::now();
+    auto duration2 = chrono::duration_cast<chrono::milliseconds>(end2 - start2);
+    cout << "double costs " << duration2.count() <<"ms" << endl;
+
+    auto start3 = chrono::system_clock::now();
+
+    fcompute(0,200000000,res9);
+    cout << res9 << endl;
+
+    auto end3 = chrono::system_clock::now();
+    auto duration3 = chrono::duration_cast<chrono::milliseconds>(end3 - start3);
+    cout << "float costs " << duration3.count() <<"ms" << endl;
+
+    delete [] v1;
+    delete [] v2;
+    return 0;
 }

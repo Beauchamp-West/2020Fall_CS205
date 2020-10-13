@@ -13,10 +13,15 @@ float generateRand(){ //生成随机数组
 
 int main()
 {
-   FILE * fp = NULL;
+   FILE * fp= NULL;
    
-   fp = fopen("/Users/leolu/Downloads/C:C++/Assignments/cmake-build-debug/data1", "wb"); // 以二进制写入的形式打开
-
+   fp = fopen("/Users/leolu/Downloads/C++/Assignments/cmake-build-debug/data3", "wb"); // 以二进制写入的形式打开
+   if (fp == NULL)
+   {
+      cout << "wrong\n";
+      return -1;
+   }
+   
    float *ran;
    ran = new float[200000000]; // 动态分配数组
    for (int i =0 ; i < 200000000; ++i)
