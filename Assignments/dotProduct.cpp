@@ -198,21 +198,17 @@ int main(){
     cout << "openBLAS costs " << duration.count() <<"ms" << endl;
 
     auto start2 = chrono::system_clock::now();
-    string result[8];
-    string res0="0";
+    long double result[8]={0};
+    long double res0=0;
     long double res9=0;
-//    thread t1(compute,0,50000000,ref(res1)); // 4线程
-//    thread t2(compute,50000000,100000000,ref(res2));
-//    thread t3(compute,100000000,150000000,ref(res3));
-//    thread t4(compute,150000000,200000000,ref(res4));
-    thread t1(compute,0,25000000,ref(result[0])); // 8线程
-    thread t2(compute,25000000,50000000,ref(result[1]));
-    thread t3(compute,50000000,75000000,ref(result[2]));
-    thread t4(compute,75000000,100000000,ref(result[3]));
-    thread t5(compute,100000000,125000000,ref(result[4]));
-    thread t6(compute,125000000,150000000,ref(result[5]));
-    thread t7(compute,150000000,175000000,ref(result[6]));
-    thread t8(compute,175000000,200000000,ref(result[7]));
+    thread t1(lcompute,0,25000000,ref(result[0])); // 8线程
+    thread t2(lcompute,25000000,50000000,ref(result[1]));
+    thread t3(lcompute,50000000,75000000,ref(result[2]));
+    thread t4(lcompute,75000000,100000000,ref(result[3]));
+    thread t5(lcompute,100000000,125000000,ref(result[4]));
+    thread t6(lcompute,125000000,150000000,ref(result[5]));
+    thread t7(lcompute,150000000,175000000,ref(result[6]));
+    thread t8(lcompute,175000000,200000000,ref(result[7]));
     t1.join();
     t2.join();
     t3.join();
@@ -221,8 +217,8 @@ int main(){
     t6.join();
     t7.join();
     t8.join();
-    for (string & i : result) {
-        res0 = add(i,res0);
+    for (long double & i : result) {
+        res0 += i;
     }
 //    compute(0,200000000,res0);
 
@@ -231,7 +227,7 @@ int main(){
 
     auto end2 = chrono::system_clock::now();
     auto duration2 = chrono::duration_cast<chrono::milliseconds>(end2 - start2);
-    cout << "high precision costs " << duration2.count() <<"ms" << endl;
+    cout << "8 thread long double costs " << duration2.count() <<"ms" << endl;
 
     auto start3 = chrono::system_clock::now(); // 用long double类型存储计算结果
 
