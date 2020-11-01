@@ -6,32 +6,41 @@
 using namespace std;
 
 int main() {
-    matrix m1(10,20000000), m2(20000000,10), m3;
-    m1.data[0] = 2.5f;
-    m2.data[0] = 2;
-    m1.data[20000001] = 3;
-    m2.data[10] = 5;
-    m3.row = m1.row;
-    m3.column = m2.column;
-    long dataLength = m3.row * m3.column;
-    m3.data = new float[dataLength];
+    //初始化3个矩阵
+    auto m1 = new matrix(10,2000000), m2 = new matrix(2000000,10), m3 = new matrix();
+    (*m1).data[0] = 2.5f;
+    (*m2).data[0] = 2;
+    (*m1).data[2000001] = 3;
+    (*m2).data[10] = 5;
+    init(*m3,*m1,*m2);
 
     auto start = std::chrono::steady_clock::now();
-    matrixCompute(m1,m2,m3);
+
+    //自定义的矩阵乘法
+    matrixCompute(*m1,*m2,*m3);
+
     auto end = std::chrono::steady_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
     cout << "result =\n";
-    for (int i = 0; i < m3.row; ++i) {
-        for (int j = 0; j < m3.column; ++j) {
-            cout << m3.data[i*m3.column+j] << ' ';
-        }
-        cout << "\n";
-    }
+    showMatrix(*m3);
     cout << "duration = " << duration << " ms" << std::endl;
 
-    delete [] m1.data;
-    delete [] m2.data;
-    delete [] m3.data;
+    auto start1 = std::chrono::steady_clock::now();
+
+    //openblas中的矩阵乘法
+    cblas_sgemm(CblasRowMajor,CblasNoTrans,CblasNoTrans,10,10,2000000,
+                1,(*m1).data,2000000,(*m2).data,10,0,(*m3).data,10);
+
+    auto end1 = std::chrono::steady_clock::now();
+    auto duration1 = std::chrono::duration_cast<std::chrono::milliseconds>(end1 - start1).count();
+    cout << "cblas result =\n";
+    showMatrix(*m3);
+    cout << "duration = " << duration1 << " ms" << std::endl;
+
+    //删除矩阵释放内存
+    del(m1);
+    del(m2);
+    del(m3);
 
     return 0;
 }
