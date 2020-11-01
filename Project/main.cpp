@@ -14,22 +14,32 @@ int main() {
     (*m2).data[10] = 5;
     init(*m3,*m1,*m2);
 
-    auto start = std::chrono::steady_clock::now();
+//    auto start = std::chrono::steady_clock::now();
+//    //自定义的矩阵乘法
+//    matrixCompute(*m1,*m2,*m3);
+//
+//    auto end = std::chrono::steady_clock::now();
+//    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+//    cout << "result =\n";
+//    showMatrix(*m3);
+//    cout << "duration = " << duration << " ms" << std::endl;
 
-    //自定义的矩阵乘法
-    matrixCompute(*m1,*m2,*m3);
+    trans(*m2);
 
-    auto end = std::chrono::steady_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+    //m2转置后的矩阵乘法
+    auto start0 = std::chrono::steady_clock::now();
+    matrixCompute_t(*m1,*m2,*m3);
+
+    auto end0 = std::chrono::steady_clock::now();
+    auto duration0 = std::chrono::duration_cast<std::chrono::milliseconds>(end0 - start0).count();
     cout << "result =\n";
     showMatrix(*m3);
-    cout << "duration = " << duration << " ms" << std::endl;
-
-    auto start1 = std::chrono::steady_clock::now();
+    cout << "transpose duration = " << duration0 << " ms" << std::endl;
 
     //openblas中的矩阵乘法
-    cblas_sgemm(CblasRowMajor,CblasNoTrans,CblasNoTrans,10,10,2000000,
-                1,(*m1).data,2000000,(*m2).data,10,0,(*m3).data,10);
+    auto start1 = std::chrono::steady_clock::now();
+    cblas_sgemm(CblasRowMajor,CblasNoTrans,CblasTrans,10,10,2000000,
+                1,(*m1).data,2000000,(*m2).data,2000000,0,(*m3).data,10);
 
     auto end1 = std::chrono::steady_clock::now();
     auto duration1 = std::chrono::duration_cast<std::chrono::milliseconds>(end1 - start1).count();

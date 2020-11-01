@@ -9,7 +9,7 @@ struct matrix{
     matrix(int r, int c) { //构造函数
         row = r;
         column = c;
-        data = new float [r*c]();
+        data = new float [r*c](); //元素按行主序存储
     }
     matrix() = default; //默认构造函数
 
@@ -24,6 +24,7 @@ void showMatrix(matrix &m); //打印出矩阵
 void init(matrix &m3, matrix &m1, matrix &m2); //初始化矩阵
 void del(matrix *m); //删除矩阵
 void trans(matrix &m); //转置矩阵
+void matrixCompute_t(const matrix &m1, const matrix &m2, matrix &m3); //m2转置后的矩阵乘
 void inputMatrix(matrix &m); //输入矩阵
 
 #endif //PROJECT_FUNCTIONS_H
