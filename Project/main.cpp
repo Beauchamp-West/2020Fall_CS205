@@ -12,6 +12,8 @@ int main() {
     (*m2).data[0] = 2;
     (*m1).data[2000001] = 3;
     (*m2).data[10] = 5;
+//    (*m1).data[4000002] = 3.3f;
+//    (*m2).data[20] = 3;
     init(*m3,*m1,*m2);
 
 //    auto start = std::chrono::steady_clock::now();

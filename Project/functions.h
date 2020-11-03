@@ -26,5 +26,6 @@ void del(matrix *m); //删除矩阵
 void trans(matrix &m); //转置矩阵
 void matrixCompute_t(const matrix &m1, const matrix &m2, matrix &m3); //m2转置后的矩阵乘
 void inputMatrix(matrix &m); //输入矩阵
+float vectorCompute1(float * v1, float * v2, size_t n); //解决多线程冲突的点乘
 
 #endif //PROJECT_FUNCTIONS_H

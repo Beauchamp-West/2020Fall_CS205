@@ -16,7 +16,6 @@ float vectorCompute(float * v1, float * v2, size_t length){
     __m256 c = _mm256_setzero_ps();
     size_t n = length - length % 8;
 
-//    #pragma omp parallel for
     for (size_t i = 0; i < n; i+=8)
     {
         a = _mm256_load_ps(v1 + i);
@@ -29,8 +28,42 @@ float vectorCompute(float * v1, float * v2, size_t length){
         for (int i = n; i < length; ++i)
             re += v1[i] * v2[i];
     }
-
     return (sum[0]+sum[1]+sum[2]+sum[3]+sum[4]+sum[5]+sum[6]+sum[7]+re);
+}
+
+float vectorCompute1(float * v1, float * v2, size_t length){
+    size_t n = length - length % 8;
+    float *sum = new float[n](),re = 0, res = 0;
+    __m256 *a = new __m256[n], *b = new __m256[n], *tmp =new __m256[n];
+    __m256 c = _mm256_setzero_ps();
+
+#pragma omp parallel
+    {
+#pragma omp for
+        for (size_t i = 0; i < n; i += 8) {
+            a[i] = _mm256_load_ps(v1 + i);
+            b[i] = _mm256_load_ps(v2 + i);
+            tmp[i] = _mm256_mul_ps(a[i], b[i]);
+            _mm256_store_ps(&sum[i], tmp[i]);
+        }
+    }
+
+    delete [] a;
+    delete [] b;
+    delete [] tmp;
+
+    for (size_t i = 0; i < n; ++i)
+        res += sum[i];
+
+
+    if (n != length){
+        for (int i = n; i < length; ++i)
+            re += v1[i] * v2[i];
+    }
+
+    delete [] sum;
+
+    return (res+re);
 }
 
 void matrixCompute(const matrix &m1, const matrix &m2, matrix &m3){
@@ -60,7 +93,7 @@ void matrixCompute_t(const matrix &m1, const matrix &m2, matrix &m3){
     else {
         size_t n = m1.row * m2.row;
 
-//        #pragma omp parallel for
+//        #pragma omp parallel for //default (none)
         for (size_t i = 0; i < n; ++i) {
             size_t r = i / m2.row, c = i % m2.row;
 
@@ -97,7 +130,9 @@ void trans(matrix &m){
     auto * org = new float[m.column*m.row];
     memcpy(org,m.data,m.column*m.row);
 
+//#pragma omp parallel for
     for (int i = 0; i < m.row; ++i) {
+#pragma omp parallel for
         for (int j = 0; j < m.column; ++j) {
             m.data[i*m.column+j] = org[j*m.row+i];
         }
