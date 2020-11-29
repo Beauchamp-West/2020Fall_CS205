@@ -3,9 +3,8 @@
 //
 #include "matrix.hpp"
 #include <immintrin.h>
-//#include <arm_neon.h>
+#include <arm_neon.h>
 #include <omp.h>
-//#include <cstring>
 
 using namespace std;
 
@@ -372,26 +371,27 @@ float vectorCompute(float * v1, float * v2, size_t length){
     return (sum[0]+sum[1]+sum[2]+sum[3]+sum[4]+sum[5]+sum[6]+sum[7]+re);
 }
 
-//float vectorCompute_arm(const float *v1, const float * v2, size_t length) {
-//    float sum[8] = {0}, re = 0;
-//    float32x4_t a, b;
-//    float32x4_t c = vdupq_n_f32(0);
-//    size_t n = length - length % 8;
-//
-//    for (size_t i = 0; i < n; i+=8)
-//    {
-//        a = vld1q_f32(v1 + i);
-//        b = vld1q_f32(v2 + i);
-//        c =  vaddq_f32(c, vmulq_f32(a, b));
-//    }
-//    vst1q_f32(sum, c);
-//
-//    if (n != length){
-//        for (int i = n; i < length; ++i)
-//            re += v1[i] * v2[i];
-//    }
-//    return (sum[0]+sum[1]+sum[2]+sum[3]+sum[4]+sum[5]+sum[6]+sum[7]+re);
-//}
+//向量点乘()
+float vectorCompute_arm(const float *v1, const float * v2, size_t length) {
+    float sum[8] = {0}, re = 0;
+    float32x4_t a, b;
+    float32x4_t c = vdupq_n_f32(0);
+    size_t n = length - length % 8;
+
+    for (size_t i = 0; i < n; i+=8)
+    {
+        a = vld1q_f32(v1 + i);
+        b = vld1q_f32(v2 + i);
+        c =  vaddq_f32(c, vmulq_f32(a, b));
+    }
+    vst1q_f32(sum, c);
+
+    if (n != length){
+        for (int i = n; i < length; ++i)
+            re += v1[i] * v2[i];
+    }
+    return (sum[0]+sum[1]+sum[2]+sum[3]+sum[4]+sum[5]+sum[6]+sum[7]+re);
+}
 
 //子矩阵的乘法
 void subMatrixCompute(matrix &m1, matrix &m2, size_t start, size_t end, matrix &m3)
