@@ -6,7 +6,7 @@
 #ifdef __x86_64__
 #include <immintrin.h>
 #elif __arm__
-#include "dotproduct_arm.cpp"
+#include <arm_neon.h>
 #endif
 
 #include <omp.h>
@@ -200,6 +200,7 @@ matrix & matrix::operator+=(matrix &m) {
     }
     else cout << "The matrix cannot be added" << endl;
 }
+
 matrix & matrix::operator-=(matrix &m) {
     if (row == m.row && column == m.column) {
 
@@ -310,6 +311,7 @@ double matrix::det()
 
     return sum;
 }
+
 //矩阵求逆
 matrix & matrix::inverse(matrix &m)
 {
@@ -376,7 +378,7 @@ float vectorCompute(float * v1, float * v2, size_t length){
     return (sum[0]+sum[1]+sum[2]+sum[3]+sum[4]+sum[5]+sum[6]+sum[7]+re);
 }
 #elif __arm__
-float vectorCompute(const float *v1, const float * v2, size_t length) {
+float vectorCompute(float *v1, float * v2, size_t length) {
     float sum[8] = {0}, re = 0;
     float32x4_t a, b;
     float32x4_t c = vdupq_n_f32(0);

@@ -1,7 +1,5 @@
 #include <iostream>
 #include "matrix.hpp"
-#include </usr/local/Cellar/openblas/0.3.10_1/include/cblas.h>
-#include <chrono>
 
 using namespace std;
 
