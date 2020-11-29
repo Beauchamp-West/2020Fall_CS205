@@ -47,5 +47,4 @@ public:
 };
 
 float vectorCompute(float *, float *v2, size_t); //向量点乘
-float vectorCompute_arm(const float *p1, const float * p2, size_t length);
 void subMatrixCompute(matrix &, matrix &, size_t, size_t, matrix &);

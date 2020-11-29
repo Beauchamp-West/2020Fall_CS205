@@ -2,8 +2,13 @@
 // Created by 陆彦青 on 2020/11/23.
 //
 #include "matrix.hpp"
+
+#ifdef __x86_64__
 #include <immintrin.h>
-#include <arm_neon.h>
+#elif __arm__
+#include "dotproduct_arm.cpp"
+#endif
+
 #include <omp.h>
 
 using namespace std;
@@ -349,7 +354,7 @@ matrix & matrix::identity(size_t n) {
     return *m;
 }
 
-//向量点乘(avx)
+#ifdef __x86_64__
 float vectorCompute(float * v1, float * v2, size_t length){
     float sum[8] = {0},re = 0;
     __m256 a, b;
@@ -370,9 +375,8 @@ float vectorCompute(float * v1, float * v2, size_t length){
     }
     return (sum[0]+sum[1]+sum[2]+sum[3]+sum[4]+sum[5]+sum[6]+sum[7]+re);
 }
-
-//向量点乘()
-float vectorCompute_arm(const float *v1, const float * v2, size_t length) {
+#elif __arm__
+float vectorCompute(const float *v1, const float * v2, size_t length) {
     float sum[8] = {0}, re = 0;
     float32x4_t a, b;
     float32x4_t c = vdupq_n_f32(0);
@@ -391,7 +395,7 @@ float vectorCompute_arm(const float *v1, const float * v2, size_t length) {
             re += v1[i] * v2[i];
     }
     return (sum[0]+sum[1]+sum[2]+sum[3]+sum[4]+sum[5]+sum[6]+sum[7]+re);
-}
+#endif
 
 //子矩阵的乘法
 void subMatrixCompute(matrix &m1, matrix &m2, size_t start, size_t end, matrix &m3)
