@@ -5,7 +5,7 @@
 
 #ifdef __x86_64__
 #include <immintrin.h>
-#elif __arm__
+#elif __arm64__
 #include <arm_neon.h>
 #endif
 
@@ -82,6 +82,7 @@ matrix::~matrix() {
 //    if (flag == 0) cout << "matrix m" << num << " is deleted" << endl;
 }
 
+//各类运算符重载
 matrix & matrix::operator=(matrix &m) {
     if (this == &m) return *this;
 
@@ -266,6 +267,8 @@ istream & operator>>(istream & is, matrix &m) {
 
     return is;
 }
+
+//矩阵转置
 void matrix::trans(){
     size_t tmp = column;
     column = row;
@@ -356,6 +359,7 @@ matrix & matrix::identity(size_t n) {
     return *m;
 }
 
+//两种架构的向量点乘
 #ifdef __x86_64__
 float vectorCompute(float * v1, float * v2, size_t length){
     float sum[8] = {0},re = 0;
@@ -377,7 +381,7 @@ float vectorCompute(float * v1, float * v2, size_t length){
     }
     return (sum[0]+sum[1]+sum[2]+sum[3]+sum[4]+sum[5]+sum[6]+sum[7]+re);
 }
-#elif __arm__
+#elif defined __arm64__
 float vectorCompute(float *v1, float * v2, size_t length) {
     float sum[8] = {0}, re = 0;
     float32x4_t a, b;
