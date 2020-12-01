@@ -1,5 +1,6 @@
 #include <iostream>
 #include "matrix.hpp"
+#include <chrono>
 
 using namespace std;
 
@@ -9,13 +10,18 @@ int main() {
     m1[0]=2.5f;
     m2[0]=3;
     m1[200000]=1.5f;
-    cout << "m1 is 10 * 20000000\n";
-    cout << "m2 is 20000000 * 10\n";
+    cout << "m1 is 10 * 200000\n";
+    cout << "m2 is 200000 * 10\n";
 
     //矩阵相乘测试
+    auto start = std::chrono::steady_clock::now();
     matrix m3 = m1*m2;
+    auto end = std::chrono::steady_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+
     cout << "m3 = m1 * m2, m3 =\n";
     cout << m3;
+    cout << "duration = " << duration << "ms" << std::endl;
 
     //矩阵与标量相乘测试
     m3 *= 2;
