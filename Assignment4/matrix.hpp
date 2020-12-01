@@ -6,28 +6,26 @@ using namespace std;
 class matrix {
 private:
 
-    size_t num;
-    static size_t count;
+    size_t num; //元素个数
     size_t row{};
     size_t column{};
     float *data{};
-    int flag = 0; //标志是否为临时
+    int flag = 0;
 public:
     matrix();
     matrix(size_t, size_t);
-    matrix(const matrix &);
-    matrix(const matrix &, const matrix &);
+    matrix(matrix &);
     ~matrix();
 
-    matrix & operator=(matrix &);
+    matrix & operator=(const matrix &);
     matrix & operator+(const matrix &);
     matrix & operator-(const matrix &);
     matrix & operator*(matrix &);
     matrix & operator*(float);
-    matrix & operator*=(float);
-    matrix & operator*=(matrix &);
-    matrix & operator+=(matrix &);
-    matrix & operator-=(matrix &);
+    void operator*=(float);
+    void operator*=(matrix &);
+    void operator+=(matrix &);
+    void operator-=(matrix &);
     float & operator[](size_t);
 
     void trans(); //转置矩阵
@@ -46,5 +44,5 @@ public:
     void setData(size_t i, float v) {data[i] = v;};
 };
 
-float vectorCompute(float *, float *v2, size_t); //向量点乘
+float vectorCompute(const float *, const float *v2, size_t); //向量点乘
 void subMatrixCompute(matrix &, matrix &, size_t, size_t, matrix &);

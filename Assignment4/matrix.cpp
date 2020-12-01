@@ -13,220 +13,202 @@
 
 using namespace std;
 
-size_t matrix::count = 1;
-
 matrix::matrix() {
-    num = count;
+    num = 0;
 //    cout << "default matrix m" << num << " created" << endl;
-    count++;
 
     row = 0;
     column = 0;
     data = nullptr;
 }
 
-matrix::matrix(const matrix &m) {
+matrix::matrix(matrix &m) {
     row = m.row;
     column = m.column;
-    data = new float[row*column];
+    num = row*column;
+    data = m.data;
 
-#pragma omp parallel for
-    for (size_t i = 0; i < row*column; ++i) {
-        data[i] = m.data[i];
-    }
-
-    if (m.flag == 0) {
-        num = count;
-//        cout << "matrix m" << num << " created by copying matrix m" << m.num << endl;
-        count++;
-    } else {
-        num = m.num;
-        delete &m;
-    }
-}
-
-matrix::matrix(const matrix &m1, const matrix &m2) {
-    row = m1.row;
-    column = m2.column;
-    data = new float[row * column]();
-
-    if (m1.flag == 0 && m2.flag == 0) {
-        num = count;
-//        cout << "matrix m" << num << " created by assigning matrix m" << m1.num << " and m" << m2.num << endl;
-        count++;
-    } else {
-        if (m1.flag != 0) {
-            num = 0;
-            delete &m1;
-        }
-        if (m2.flag != 0) {
-            num = 0;
-            delete &m2;
-        }
-    }
+    data[num]++;
 }
 
 matrix::matrix(size_t r, size_t c) {
-    num = count;
-//    cout << "matrix m" << num <<" created with row " << r << " and column " << c << endl;
-    count++;
-
     row = r;
     column = c;
-    data = new float[r * c]();
+    num = r*c;
+    data = new float[num+1]();
 }
 
 matrix::~matrix() {
-    delete [] data;
-//    --count;
-//    if (flag == 0) cout << "matrix m" << num << " is deleted" << endl;
+    if (data[num] == 0) {
+//        cout << "delete" << endl;
+        delete[] data;
+    }
+    else data[num]--;
 }
 
 //各类运算符重载
-matrix & matrix::operator=(matrix &m) {
+matrix & matrix::operator=(const matrix &m) {
     if (this == &m) return *this;
 
     delete [] data;
-    data = new float[m.column*m.row];
-#pragma omp parallel for
-    for (size_t i = 0; i < row*column; ++i) {
-        data[i] = m.data[i];
-    }
+    data = m.data;
+    data[m.num]++;
 
     row = m.row;
     column = m.column;
+    num = m.num;
 
-    if (m.flag != 0) {
-        delete &m;
-    }
+//    if (m.flag != 0) delete &m;
 
     return *this;
 }
 
 matrix & matrix::operator+(const matrix &m) {
     if (row == m.row && column == m.column) {
-        matrix *res = new matrix(*this);
+        matrix *res = new matrix(m.row,m.column);
+        res->flag = 1;
 
 #pragma omp parallel for
-        for (size_t i = 0; i < row*column; ++i) {
-            res->data[i] += m.data[i];
+        for (size_t i = 0; i < num; ++i) {
+            res->data[i] = this->data[i] + m.data[i];
         }
 
-        res->flag = 1;
+//        res->data[res->num]--;
         return *res;
     }
-    else cout << "The matrix cannot be added" << endl;
+    else {
+        cout << "The matrix cannot be added" << endl;
+        abort();
+    }
 
 }
 
 matrix & matrix::operator-(const matrix &m) {
     if (row == m.row && column == m.column) {
-        matrix *res = new matrix(*this);
+        matrix *res = new matrix(row,column);
+        res->flag = 1;
 
 #pragma omp parallel for
         for (size_t i = 0; i < row*column; ++i) {
-            res->data[i] -= m.data[i];
+            res->data[i] = this->data[i] - m.data[i];
         }
 
-        res->flag = 1;
+//        res->data[res->num]--;
         return *res;
     }
-    else cout << "The matrix cannot be subtracted" << endl;
+    else {
+        cout << "The matrix cannot be subtracted" << endl;
+        abort();
+    }
 }
+
 
 matrix & matrix::operator*(matrix &m) {
     if (column == m.row) {
-        matrix *res = new matrix(*this,m);
+        auto *res = new matrix(row,m.column);
+        res->flag = 1;
         m.trans();
-        size_t n = row * m.row;
 
 #pragma omp parallel for
-        for (size_t i = 0; i < n; ++i) {
+        for (size_t i = 0; i < res->num; ++i) {
+            size_t r = i / m.row, c = i % m.row;
+            res->data[i] = vectorCompute(&data[r * column], &m.data[c * column], column);
+        }
+
+        m.trans();
+        return *res;
+    }
+    else {
+        cout << "The matrix cannot be multiplied" << endl;
+        abort();
+    }
+}
+
+matrix & matrix::operator*(float n) {
+    matrix *res = new matrix(row, column);
+    res->flag = 1;
+
+#pragma omp parallel for
+    for (size_t i = 0; i < num; ++i) {
+        res->data[i] = n * data[i];
+    }
+
+    return *res;
+}
+
+void matrix::operator*=(float n) {
+#pragma omp parallel for
+    for (size_t i = 0; i < num; ++i) {
+        data[i] *= n;
+    }
+}
+
+void matrix::operator*=(matrix &m) {
+    if (column == m.row) {
+        matrix *res = new matrix(row,m.column);
+        m.trans();
+
+#pragma omp parallel for
+        for (size_t i = 0; i < res->num; ++i) {
             size_t r = i / m.row, c = i % m.row;
             res->data[i] = vectorCompute(&data[r * column], &m.data[c * m.column], column);
         }
 
-        res->flag = 1;
-        return *res;
-    }
-    else cout << "The matrix cannot be multiplied" << endl;
-}
-
-matrix & matrix::operator*(float n) {
-    matrix *res = new matrix(*this);
-
-#pragma omp parallel for
-    for (size_t i = 0; i < row*column; ++i) {
-        res->data[i] *= n;
-    }
-
-    res->flag = 1;
-    return *res;
-}
-
-matrix & matrix::operator*=(float n) {
-#pragma omp parallel for
-    for (size_t i = 0; i < row*column; ++i) {
-        data[i] *= n;
-    }
-    return *this;
-}
-
-matrix & matrix::operator*=(matrix &m) {
-    if (column == m.row) {
-        matrix res(*this,m);
         m.trans();
-        size_t n = row * m.row;
-
-#pragma omp parallel for
-        for (size_t i = 0; i < n; ++i) {
-            size_t r = i / m.row, c = i % m.row;
-            res.data[i] = vectorCompute(&data[r * column], &m.data[c * m.column], column);
-        }
-
-        *this = res;
-        return *this;
+        delete this;
+        *this = *res;
     }
-    else cout << "The matrix cannot be multiplied" << endl;
+    else {
+        cout << "The matrix cannot be multiplied" << endl;
+        abort();
+    }
 }
 
-matrix & matrix::operator+=(matrix &m) {
+void matrix::operator+=(matrix &m) {
     if (row == m.row && column == m.column) {
 
 #pragma omp parallel for
-        for (size_t i = 0; i < row*column; ++i) {
+        for (size_t i = 0; i < num; ++i) {
             data[i] += m.data[i];
         }
-        return *this;
     }
-    else cout << "The matrix cannot be added" << endl;
+    else {
+        cout << "The matrix cannot be added" << endl;
+        abort();
+    }
 }
 
-matrix & matrix::operator-=(matrix &m) {
+void matrix::operator-=(matrix &m) {
     if (row == m.row && column == m.column) {
 
 #pragma omp parallel for
-        for (size_t i = 0; i < row*column; ++i) {
+        for (size_t i = 0; i < num; ++i) {
             data[i] -= m.data[i];
         }
-        return *this;
     }
-    else cout << "The matrix cannot be subtracted" << endl;
+    else {
+        cout << "The matrix cannot be subtracted" << endl;
+        abort();
+    }
 }
 
 float & matrix::operator[](size_t i) {
-    return data[i];
+    if (i < num) return data[i];
+    else {
+        cout << "data index overflow" << endl;
+        abort();
+    }
 }
 
 matrix & operator*(float n, matrix &m) {
-    matrix *res = new matrix(m);
+    matrix *res = new matrix(m.row, m.column);
+    res->flag = 1;
 
 #pragma omp parallel for
-    for (size_t i = 0; i < m.row*m.column; ++i) {
-        res->data[i] *= n;
+    for (size_t i = 0; i < m.num; ++i) {
+        res->data[i] = n * m[i];
     }
 
-    res->flag = 1;
     return *res;
 }
 
@@ -241,7 +223,6 @@ bool operator==(const matrix &m1, const matrix &m2) {
 }
 
 ostream & operator<<(ostream & os, matrix &m) {
-//    os << "matrix m" << m.num << " is\n";
     for (int i = 0; i <m.row; ++i) {
         for (int j = 0; j < m.column; ++j) {
             os << m.data[i*m.column+j] << ' ';
@@ -256,12 +237,12 @@ istream & operator>>(istream & is, matrix &m) {
     cout << "Please input the rows and columns: ";
     is >> m.row >> m.column;
 
-    size_t len = m.column*m.row;
+    m.num = m.column*m.row;
     delete [] m.data;
-    m.data = new float [len];
+    m.data = new float [m.num+1]();
 
     cout << "Please input the data: " << endl;
-    for (int i = 0; i < len; ++i) {
+    for (int i = 0; i < m.num; ++i) {
         is >> m.data[i];
     }
 
@@ -274,9 +255,9 @@ void matrix::trans(){
     column = row;
     row = tmp;
 
-    auto * org = new float[column*row];
+    auto * org = new float[num+1];
 #pragma omp parallel for
-    for (size_t i = 0; i < row*column; ++i) {
+    for (size_t i = 0; i < num; ++i) {
         org[i] = data[i];
     }
 
@@ -298,20 +279,21 @@ double matrix::det()
     if (row == 1) return data[0];
 
     short flag,add;
-    matrix sub(row-1,row-1);
+    auto *sub = new matrix(row-1,row-1);
     double sum;
 
     for (int i = 0; i < row; ++i) {
         for (int j = 0; j < row-1; ++j) {
             add = i > j ? 0 : 1; //划去第i行后子矩阵的前i-1行对应原矩阵前i-1行，而之后的行数+1
             for (int k = 0; k < row-1; ++k) {
-                sub.setData(j*(row-1)+k,data[(j+add)*row+k+1]);
+                sub->data[j*(row-1)+k] = data[(j+add)*row+k+1];
             }
         }
         flag = i % 2 == 0 ? 1 : -1;
-        sum += flag * data[i*row] * sub.det();
+        sum += flag * data[i*row] * sub->det();
     }
 
+    delete sub;
     return sum;
 }
 
@@ -327,7 +309,7 @@ matrix & matrix::inverse(matrix &m)
 
     auto res = new matrix(m.row,m.column);
 
-    matrix sub(m.row-1,m.column-1);
+    auto *sub = new matrix(m.row-1,m.column-1);
     int add1,add2,flag;
     for (size_t i = 0; i < m.column * m.row; ++i) {
         size_t r = i/m.row, c = i%m.row; //对应伴随矩阵第r行，第c列的元素(原矩阵第c行，第r列的代数余子式)
@@ -335,17 +317,17 @@ matrix & matrix::inverse(matrix &m)
             for (int k = 0; k < m.row-1; ++k) {
                 add1 = c > j ? 0 : 1; //划去第c行后子矩阵的前c-1行对应原矩阵前c-1行，而之后的行数+1
                 add2 = r > k ? 0 : 1; //划去第r列后子矩阵的前r-1列对应原矩阵前r-1列，而之后的列数+1
-                sub[j*(m.row-1)+k] = m.data[(j+add1)*m.row+k+add2];
+                sub->data[j*(m.row-1)+k] = m.data[(j+add1)*m.row+k+add2];
             }
         }
 
         flag = ((r+c) % 2 == 0) ? 1 : -1;
 
-        float ele = sub.det() / detOfm * flag;
+        float ele = sub->det() / detOfm * flag;
         res->data[i] =  ele == -0 ? 0 : ele;
     }
-    m.flag = 1;
 
+    delete sub;
     return *res;
 }
 
@@ -355,17 +337,22 @@ matrix & matrix::identity(size_t n) {
     for (size_t i = 0; i < n; ++i) {
         m->data[i*n+i] = 1;
     }
-    m->flag = 1;
     return *m;
 }
 
 //两种架构的向量点乘
 #ifdef __x86_64__
-float vectorCompute(float * v1, float * v2, size_t length){
+float vectorCompute(const float * v1, const float * v2, size_t length){
+//    float res = 0;
+//    for (int i = 0; i < length; ++i) {
+//        res += v1[i]*v2[i];
+//    }
+//    return res;
     float sum[8] = {0},re = 0;
     __m256 a, b;
     __m256 c = _mm256_setzero_ps();
     size_t n = length - length % 8;
+
 
     for (size_t i = 0; i < n; i+=8)
     {
@@ -379,10 +366,11 @@ float vectorCompute(float * v1, float * v2, size_t length){
         for (int i = n; i < length; ++i)
             re += v1[i] * v2[i];
     }
+
     return (sum[0]+sum[1]+sum[2]+sum[3]+sum[4]+sum[5]+sum[6]+sum[7]+re);
 }
 #elif defined __arm64__
-float vectorCompute(float *v1, float * v2, size_t length) {
+float vectorCompute(const float *v1, const float * v2, size_t length) {
     float sum[8] = {0}, re = 0;
     float32x4_t a, b;
     float32x4_t c = vdupq_n_f32(0);
