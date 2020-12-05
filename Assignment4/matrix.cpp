@@ -2,13 +2,11 @@
 // Created by 陆彦青 on 2020/11/23.
 //
 #include "matrix.hpp"
-
 #ifdef __x86_64__
 #include <immintrin.h>
 #elif __arm64__
 #include <arm_neon.h>
 #endif
-
 #include <omp.h>
 
 using namespace std;
@@ -58,8 +56,6 @@ matrix & matrix::operator=(const matrix &m) {
     column = m.column;
     num = m.num;
 
-//    if (m.flag != 0) delete &m;
-
     return *this;
 }
 
@@ -72,7 +68,6 @@ matrix & matrix::operator+(const matrix &m) {
             res->data[i] = this->data[i] + m.data[i];
         }
 
-//        res->data[res->num]--;
         return *res;
     }
     else {
@@ -91,7 +86,6 @@ matrix & matrix::operator-(const matrix &m) {
             res->data[i] = this->data[i] - m.data[i];
         }
 
-//        res->data[res->num]--;
         return *res;
     }
     else {
