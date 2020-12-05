@@ -4,7 +4,7 @@
 #include "matrix.hpp"
 #ifdef __x86_64__
 #include <immintrin.h>
-#elif __arm64__
+#elif __aarch64__
 #include <arm_neon.h>
 #endif
 #include <omp.h>
@@ -358,7 +358,7 @@ float vectorCompute(const float * v1, const float * v2, size_t length){
 
     return (sum[0]+sum[1]+sum[2]+sum[3]+sum[4]+sum[5]+sum[6]+sum[7]+re);
 }
-#elif defined __arm64__
+#elif defined __aarch64__
 float vectorCompute(const float *v1, const float * v2, size_t length) {
     float sum[8] = {0}, re = 0;
     float32x4_t a, b;
@@ -378,6 +378,7 @@ float vectorCompute(const float *v1, const float * v2, size_t length) {
             re += v1[i] * v2[i];
     }
     return (sum[0]+sum[1]+sum[2]+sum[3]+sum[4]+sum[5]+sum[6]+sum[7]+re);
+}
 #endif
 
 //子矩阵的乘法
