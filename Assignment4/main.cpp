@@ -6,12 +6,12 @@ using namespace std;
 
 int main() {
     //初始化2个矩阵
-    matrix m1(10,20000000), m2(20000000,10);
+    matrix m1(10,2000000), m2(2000000,10);
     m1[0]=2.5f;
     m2[0]=3;
-    m1[20000000]=1.5f;
-    cout << "m1 is 10 * 200000\n";
-    cout << "m2 is 200000 * 10\n";
+    m1[2000000]=1.5f;
+    cout << "m1 is 10 * 2000000\n";
+    cout << "m2 is 2000000 * 10\n";
 
     //矩阵相乘测试
     auto start = std::chrono::steady_clock::now();
