@@ -66,7 +66,6 @@ matrix & matrix::operator=(const matrix &m) {
 matrix & matrix::operator+(const matrix &m) {
     if (row == m.row && column == m.column) {
         matrix *res = new matrix(m.row,m.column);
-        res->flag = 1;
 
 #pragma omp parallel for
         for (size_t i = 0; i < num; ++i) {
@@ -86,7 +85,6 @@ matrix & matrix::operator+(const matrix &m) {
 matrix & matrix::operator-(const matrix &m) {
     if (row == m.row && column == m.column) {
         matrix *res = new matrix(row,column);
-        res->flag = 1;
 
 #pragma omp parallel for
         for (size_t i = 0; i < row*column; ++i) {
@@ -106,7 +104,6 @@ matrix & matrix::operator-(const matrix &m) {
 matrix & matrix::operator*(matrix &m) {
     if (column == m.row) {
         auto *res = new matrix(row,m.column);
-        res->flag = 1;
         m.trans();
 
 #pragma omp parallel for
@@ -126,7 +123,6 @@ matrix & matrix::operator*(matrix &m) {
 
 matrix & matrix::operator*(float n) {
     matrix *res = new matrix(row, column);
-    res->flag = 1;
 
 #pragma omp parallel for
     for (size_t i = 0; i < num; ++i) {
@@ -202,7 +198,6 @@ float & matrix::operator[](size_t i) {
 
 matrix & operator*(float n, matrix &m) {
     matrix *res = new matrix(m.row, m.column);
-    res->flag = 1;
 
 #pragma omp parallel for
     for (size_t i = 0; i < m.num; ++i) {
@@ -261,8 +256,8 @@ void matrix::trans(){
         org[i] = data[i];
     }
 
-    for (int i = 0; i < row; ++i) {
 #pragma omp parallel for
+    for (size_t i = 0; i < row; ++i) {
         for (int j = 0; j < column; ++j) {
             data[i*column+j] = org[j*row+i];
         }

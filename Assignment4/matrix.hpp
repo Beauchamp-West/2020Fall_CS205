@@ -10,7 +10,6 @@ private:
     size_t row{};
     size_t column{};
     float *data{};
-    int flag = 0;
 public:
     matrix();
     matrix(size_t, size_t);
