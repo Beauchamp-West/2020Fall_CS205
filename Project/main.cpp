@@ -1,6 +1,6 @@
 #include <iostream>
 #include "functions.h"
-#include </usr/local/Cellar/openblas/0.3.10_1/include/cblas.h>
+#include "/usr/local/Cellar/openblas/0.3.10_1/include/cblas.h"
 #include <chrono>
 
 using namespace std;
