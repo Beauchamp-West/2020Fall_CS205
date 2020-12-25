@@ -16,16 +16,16 @@ private:
     int width;
     int depth;
     int length;
-    float *data;
+    double *data;
 public:
-    Image(int rows, int cols, int channels, float * data);
+    Image(int rows, int cols, int channels, double * data);
     ~Image();
 
     void conv(int out_dep, int in_dep, int ker_size, int pad, int stride,
-             float * weight, const float * bias);
+             const float * weight, const float * bias);
     void reLU();
     void max_pool();
-    void fc(int out_dep, float * weight, const float * bias);
+    void fc(int out_dep, const float * weight, const float * bias);
 
     void show();
 };
@@ -48,7 +48,7 @@ public:
     void flatten(float * out);
 };
 
-void convert2float(const Mat & image, float * data);
-float max_4(float f1, float f2, float f3, float f4); //4个浮点数取最大值
+void convert2float(const Mat & image, double * data);
+double max_4(double f1, double f2, double f3, double f4); //4个浮点数取最大值
 
 #endif //PROJECT2_CNN_H
