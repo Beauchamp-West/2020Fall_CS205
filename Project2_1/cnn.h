@@ -22,12 +22,16 @@ public:
     ~Image();
 
     void conv(int out_dep, int in_dep, int ker_size, int pad, int stride,
-             float * weight, const float * bias);
+             const float * weight, const float * bias);
     void reLU();
     void max_pool();
-    void fc(int out_dep, float * weight, const float * bias);
+    void fc(int out_dep, const float * weight, const float * bias);
+    void softmax();
 
     void show();
+    void show_info() const;
+
+    void conv1(int out_dep, int in_dep, int ker_size, int pad, int stride, const float *weight, const float *bias);
 };
 
 template<int depth>
