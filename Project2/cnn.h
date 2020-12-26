@@ -40,14 +40,10 @@ public:
               const float * weight, const float * bias);
     void conv2_2(int out_dep, int in_dep, int ker_size, int pad, int stride,
                const float * weight, const float * bias);
-    void reLU2();
-    void max_pool2();
-    void fc2(int out_dep, const float * weight, const float * bias);
 
 };
 
 void convert2float(const Mat & image, float * data);
-void convert2float2(const Mat & image, float * data);
 float max_4(float f1, float f2, float f3, float f4); //4个浮点数取最大值
 
 #endif //PROJECT2_CNN_H
