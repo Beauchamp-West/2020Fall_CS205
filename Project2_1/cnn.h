@@ -34,24 +34,6 @@ public:
     void conv1(int out_dep, int in_dep, int ker_size, int pad, int stride, const float *weight, const float *bias);
 };
 
-template<int depth>
-class Layers {
-private:
-    typedef float array[depth]; //将深度为depth的float数组定义为类型array，方便运算
-    array ** data;
-    int rows;
-    int cols;
-public:
-    Layers(int rows, int cols);
-    ~Layers();
-    void init(const Mat & image);
-    void conv(int out_dep, int in_dep, int ker_size, int pad, int stride,
-              const float * weight, const float * bias, Layers & layers);
-    void reLU();
-    void max_pool(Layers & layers);
-    void flatten(float * out);
-};
-
 void convert2float(const Mat & image, float * data);
 float max_4(float f1, float f2, float f3, float f4); //4个浮点数取最大值
 
