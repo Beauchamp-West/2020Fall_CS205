@@ -9,9 +9,9 @@
 
 //从图像读取数据到一维数组
 void convert2float(const Mat & image, float * data) {
-    Mat out;
-    cvtColor(image, image, COLOR_BGR2RGB, 0); //颜色顺序转换
-    image.convertTo(out, CV_32F, 1.0 / 255); //数据类型转换
+    Mat out = image.clone();
+    cvtColor(out, out, COLOR_BGR2RGB, 0); //颜色顺序转换
+    out.convertTo(out, CV_32F, 1.0 / 255); //数据类型转换
 
     if (out.isContinuous()) { //判断图像元素是否在内存上连续
         int height = out.rows, width = out.cols, dep = out.channels();
@@ -299,7 +299,8 @@ Image::~Image() {
 void Image::show() {
 //    cout << "height = " << height << ", width = " << width << ", depth = " << depth << endl;
     for (int i = 0; i < depth; ++i) {
-        cout << "score_" << fixed << setprecision(2) << i << ": "  << data[i] << ", ";
+//        cout << "score_" << fixed << setprecision(6) << i << ": "  << data[i] << ", ";
+        printf("score_%d: %.6f, ",i,data[i]);
     }
 }
 
