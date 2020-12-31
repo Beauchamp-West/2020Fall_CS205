@@ -145,8 +145,8 @@ void Image::conv2_1(int out_dep, int in_dep, int ker_size, int pad, int stride,
                 for (int l = 0; l < ker_size*ker_size; ++l) {
                     kernel_r = l/ker_size; //卷积核第r层
                     kernel_c = l%ker_size;
-                    p = kernel_r*width+kernel_c; //输入数组对应坐标(从卷积部分首地址算起)
-                    in_k = in_kr*width+in_kc+p;
+                    p = kernel_r*width+kernel_c;
+                    in_k = in_kr*width+in_kc+p; //输入矩阵对应坐标
                     out[i * out_w * out_h + k] += (in_k < 0)? 0 : kernel[l] * data[j * height * width + in_k];
                 }
             }
@@ -178,7 +178,6 @@ void Image::conv2_2(int out_dep, int in_dep, int ker_size, int pad, int stride,
 
         for (int j = 0; j < in_dep; ++j) {
             data_j = &data[j * height * width]; // 输入矩阵第j层首地址
-//            data_j[-1] = 0; //便于处理pad部分的特殊情况
 
             for (int l = 0; l < ker_size*ker_size; ++l) {
                 kernel_r = l/ker_size; //卷积核第r层
@@ -191,9 +190,7 @@ void Image::conv2_2(int out_dep, int in_dep, int ker_size, int pad, int stride,
                     out_kc = k%out_w;
                     in_kr = out_kr*stride-pad;
                     in_kc = out_kc*stride-pad;
-//                    in_k = (in_kr*width+in_kc+p) >= 0 ? in_kr*width+in_kc+p : -1; //输入矩阵第j层对应卷积部分坐标
-//                    out_i[k] += kernel_l * data_j[in_k];
-                    in_k = in_kr*width+in_kc+p;
+                    in_k = in_kr*width+in_kc+p; // 输入矩阵对应坐标
                     out_i[k] += (in_k < 0)? 0 : kernel_l * data_j[in_k];
                 }
 
