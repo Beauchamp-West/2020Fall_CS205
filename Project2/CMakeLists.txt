@@ -15,8 +15,8 @@ IF(APPLE)
 
     set(CMAKE_CXX_FLAGS "-Xpreprocessor -fopenmp -lomp -Wno-unused-command-line-argument -O3")
 ELSEIF(LINUX)
-    set(CMAKE_CXX_FLAGS "-std=c++11 -O3 ${OpenMP_CXX_FLAGS} -mfpu=neon")
+    set(CMAKE_CXX_FLAGS "-O3 ${OpenMP_CXX_FLAGS}")
 ENDIF()
 
-add_executable(Project2 main.cpp cnn.cpp)
+add_executable(Project2 test_conv.cpp cnn.cpp)
 target_link_libraries(Project2 ${OpenCV_LIBS})
