@@ -70,7 +70,9 @@ void Image::conv(int out_dep, int in_dep, int ker_size, int pad, int stride,
                     kernel_r = l/ker_size; //卷积核第r层
                     kernel_c = l%ker_size;
                     p = kernel_r*width+kernel_c; //输入数组对应坐标(从卷积部分首地址算起)
-                    if ((in_k+p) >= 0) //填充部分为0故不参与计算
+                    bool out_of_range = in_kr+kernel_r < 0 || in_kr+kernel_r >= width
+                                        || in_kc+kernel_c < 0 || in_kc+kernel_c >= width; //判断坐标是否在非填充区域外
+                    if (!out_of_range) //填充部分为0故不参与计算
                         out[i * out_w * out_h + k] += kernel[l] * data[j * height * width + in_k + p];
                 }
             }
@@ -116,9 +118,9 @@ void Image::conv1(int out_dep, int in_dep, int ker_size, int pad, int stride,
                     in_kr = out_kr*stride-pad;
                     in_kc = out_kc*stride-pad;
                     in_k = in_kr*width+in_kc; //输入矩阵第j层对应卷积部分首地址
-
-                    if ((in_k+p) >= 0) { //填充部分为0故不参与计算
-//                        out[i * out_w * out_h + k] += kernel_l * data[j * height * width + in_k + p];
+                    bool out_of_range = in_kr+kernel_r < 0 || in_kr+kernel_r >= width
+                                        || in_kc+kernel_c < 0 || in_kc+kernel_c >= width; //判断坐标是否在非填充区域外
+                    if (!out_of_range) { //填充部分为0故不参与计算
                         out_i[k] += kernel_l * data_j[in_k + p];
                     }
                 }
@@ -143,7 +145,7 @@ void Image::conv2_1(int out_dep, int in_dep, int ker_size, int pad, int stride,
     int out_w = (width+2*pad-ker_size)/stride+1;
     auto * out = new float[out_dep*out_h*out_w+1](); //输出的数组
     int in_kr, in_kc, out_kr, out_kc, in_k;
-    int kernel_r, kernel_c, p;
+    int kernel_r, kernel_c;
 
     for (int i = 0; i < out_dep; ++i) {
         for (int j = 0; j < in_dep; ++j) {
@@ -160,9 +162,10 @@ void Image::conv2_1(int out_dep, int in_dep, int ker_size, int pad, int stride,
                 for (int l = 0; l < ker_size*ker_size; ++l) {
                     kernel_r = l/ker_size; //卷积核第r层
                     kernel_c = l%ker_size;
-                    p = kernel_r*width+kernel_c;
-                    in_k = in_kr*width+in_kc+p; //输入矩阵对应坐标
-                    out[i * out_w * out_h + k] += (in_k < 0)? 0 : kernel[l] * data[j * height * width + in_k];
+                    in_k = (in_kr+kernel_r) * width + (in_kc+kernel_c); //输入矩阵对应坐标
+                    bool out_of_range = in_kr+kernel_r < 0 || in_kr+kernel_r >= width
+                                        || in_kc+kernel_c < 0 || in_kc+kernel_c >= width; //判断坐标是否在非填充区域外
+                    out[i * out_w * out_h + k] += out_of_range? 0 : kernel[l] * data[j * height * width + in_k];
                 }
             }
         }
@@ -184,7 +187,7 @@ void Image::conv2_2(int out_dep, int in_dep, int ker_size, int pad, int stride,
     int out_w = (width+2*pad-ker_size)/stride+1;
     auto * out = new float[out_dep*out_h*out_w](); //输出的数组
     int in_kr, in_kc, out_kr, out_kc, in_k;
-    int kernel_r, kernel_c, p;
+    int kernel_r, kernel_c;
     float * out_i, * data_j;
 
     for (int i = 0; i < out_dep; ++i) {
@@ -197,7 +200,6 @@ void Image::conv2_2(int out_dep, int in_dep, int ker_size, int pad, int stride,
             for (int l = 0; l < ker_size*ker_size; ++l) {
                 kernel_r = l/ker_size; //卷积核第r层
                 kernel_c = l%ker_size;
-                p = kernel_r*width+kernel_c; //输入矩阵对应坐标偏移量(从卷积部分首地址算起)
                 kernel_l = weight[i * (in_dep * ker_size * ker_size) + j * (ker_size * ker_size) + l];
 
                 for (int k = 0; k < out_h*out_w; ++k) {
@@ -205,8 +207,10 @@ void Image::conv2_2(int out_dep, int in_dep, int ker_size, int pad, int stride,
                     out_kc = k%out_w;
                     in_kr = out_kr*stride-pad;
                     in_kc = out_kc*stride-pad;
-                    in_k = in_kr*width+in_kc+p; // 输入矩阵对应坐标
-                    out_i[k] += (in_k < 0)? 0 : kernel_l * data_j[in_k];
+                    in_k = (in_kr+kernel_r) * width + (in_kc+kernel_c); //输入矩阵对应坐标
+                    bool out_of_range = in_kr+kernel_r < 0 || in_kr+kernel_r >= width
+                                        || in_kc+kernel_c < 0 || in_kc+kernel_c >= width; //判断坐标是否在非填充区域外
+                    out_i[k] += out_of_range? 0 : kernel_l * data_j[in_k];
                 }
 
             }
@@ -245,7 +249,9 @@ void Image::conv_p(int out_dep, int in_dep, int ker_size, int pad, int stride, f
 
                 for (int l = 0; l < in_dep; ++l) {
                     in_l = (in_r*width+in_c+p) * in_dep + l; //原矩阵对应坐标
-                    out[i*out_dep+j] += (in_l >= 0) ? kernel[l]*data[in_l] : 0;
+                    bool out_of_range = in_r+kernel_r < 0 || in_r+kernel_r >= width
+                                        || in_c+kernel_c < 0 || in_c+kernel_c >= width; //判断坐标是否在非填充区域外
+                    out[i*out_dep+j] += out_of_range ? 0 : kernel[l]*data[in_l];
                 }
             }
 
@@ -353,7 +359,7 @@ void Image::fc_p(int out_dep, const float *weight, const float *bias) {
     length = out_dep;
 }
 
-void Image::softmax() {
+void Image::softmax() const {
     float sum = 0, max = 0;
     for (int i = 0; i < length; ++i) {
         max = max > data[i] ? max : data[i];
@@ -370,20 +376,87 @@ Image::Image(int rows, int cols, int channels, float *data) {
     this->height = rows;
     this->width = cols;
     this->depth = channels;
-    this->data = data;
     this->length = rows * cols * channels;
+    this->data = data;
 }
 
 Image::~Image() {
     delete [] data;
 }
 
-void Image::show() {
+void Image::show() const {
 //    cout << "height = " << height << ", width = " << width << ", depth = " << depth << endl;
     for (int i = 0; i < depth; ++i) {
-//        cout << "score_" << fixed << setprecision(6) << i << ": "  << data[i] << ", ";
-        printf("score_%d: %.6f, ",i,data[i]);
+        printf("score_%d: %.2f, ",i,data[i]);
     }
+}
+
+//point-wise方式前向传播封装
+void Image::forward_p(conv_param * convParam, fc_param * fcParam, int layers) {
+    for (int i = 0; i < layers; ++i) {
+        auto weight = new float[convParam[i].out_channels*convParam[i].in_channels*
+                                convParam[i].kernel_size*convParam[i].kernel_size];
+        convert_order(weight,convParam[i].p_weight,convParam[i].out_channels,
+                      convParam[i].in_channels,convParam[i].kernel_size);
+
+        conv_p(convParam[i].out_channels, convParam[i].in_channels, convParam[i].kernel_size,
+                     convParam[i].pad, convParam[i].stride, weight, convParam[i].p_bias);
+        reLU();
+        if (i < layers-1) max_pool_p(); //最后一次不需要池化
+
+        delete [] weight;
+    }
+
+    fc_p(fcParam->out_features, fcParam->p_weight, fcParam->p_bias);
+    softmax();
+}
+
+void Image::forward(conv_param *convParam, fc_param *fcParam, int layers) {
+    for (int i = 0; i < layers; ++i) {
+        conv(convParam[i].out_channels, convParam[i].in_channels, convParam[i].kernel_size,
+               convParam[i].pad, convParam[i].stride, convParam[i].p_weight, convParam[i].p_bias);
+        reLU();
+        if (i < layers-1) max_pool(); //最后一次不需要池化
+    }
+
+    fc(fcParam->out_features, fcParam->p_weight, fcParam->p_bias);
+    softmax();
+}
+
+void Image::forward1(conv_param *convParam, fc_param *fcParam, int layers) {
+    for (int i = 0; i < layers; ++i) {
+        conv1(convParam[i].out_channels, convParam[i].in_channels, convParam[i].kernel_size,
+             convParam[i].pad, convParam[i].stride, convParam[i].p_weight, convParam[i].p_bias);
+        reLU();
+        if (i < layers-1) max_pool(); //最后一次不需要池化
+    }
+
+    fc(fcParam->out_features, fcParam->p_weight, fcParam->p_bias);
+    softmax();
+}
+
+void Image::forward2_1(conv_param *convParam, fc_param *fcParam, int layers) {
+    for (int i = 0; i < layers; ++i) {
+        conv2_1(convParam[i].out_channels, convParam[i].in_channels, convParam[i].kernel_size,
+             convParam[i].pad, convParam[i].stride, convParam[i].p_weight, convParam[i].p_bias);
+        reLU();
+        if (i < layers-1) max_pool(); //最后一次不需要池化
+    }
+
+    fc(fcParam->out_features, fcParam->p_weight, fcParam->p_bias);
+    softmax();
+}
+
+void Image::forward2_2(conv_param *convParam, fc_param *fcParam, int layers) {
+    for (int i = 0; i < layers; ++i) {
+        conv2_2(convParam[i].out_channels, convParam[i].in_channels, convParam[i].kernel_size,
+             convParam[i].pad, convParam[i].stride, convParam[i].p_weight, convParam[i].p_bias);
+        reLU();
+        if (i < layers-1) max_pool(); //最后一次不需要池化
+    }
+
+    fc(fcParam->out_features, fcParam->p_weight, fcParam->p_bias);
+    softmax();
 }
 
 float max_4(float f1, float f2, float f3, float f4) {

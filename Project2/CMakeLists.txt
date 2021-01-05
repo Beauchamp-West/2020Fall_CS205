@@ -18,5 +18,6 @@ ELSEIF(LINUX)
     set(CMAKE_CXX_FLAGS "-O3 ${OpenMP_CXX_FLAGS}")
 ENDIF()
 
-add_executable(Project2 test_conv.cpp cnn.cpp)
+add_executable(Project2 test_15samples.cpp cnn.cpp face_binary_cls.cpp)
+#add_executable(Project2 test_conv.cpp cnn.cpp face_binary_cls.cpp)
 target_link_libraries(Project2 ${OpenCV_LIBS})

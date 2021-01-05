@@ -7,9 +7,7 @@
 
 #include <iostream>
 #include "opencv2/opencv.hpp"
-using namespace cv;
-using namespace std;
-
+#include "face_binary_cls.h"
 using namespace cv;
 using namespace std;
 
@@ -29,9 +27,7 @@ public:
     void reLU() const;
     void max_pool();
     void fc(int out_dep, const float * weight, const float * bias);
-    void softmax();
-
-    void show();
+    void softmax() const;
 
     void conv1(int out_dep, int in_dep, int ker_size, int pad, int stride,
                const float *weight, const float *bias);
@@ -45,6 +41,15 @@ public:
               float * weight, const float * bias);
     void max_pool_p();
     void fc_p(int out_dep, const float * weight, const float * bias);
+
+    void show() const;
+
+//前向传播封装
+    void forward(conv_param *convParam, fc_param *fcParam, int layers);
+    void forward1(conv_param *convParam, fc_param *fcParam, int layers);
+    void forward2_1(conv_param *convParam, fc_param *fcParam, int layers);
+    void forward2_2(conv_param *convParam, fc_param *fcParam, int layers);
+    void forward_p(conv_param *convParam, fc_param *fcParam, int layers);
 
 };
 
